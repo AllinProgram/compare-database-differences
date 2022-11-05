@@ -1,2 +1,0 @@
-# compare-database-differences
-TODO

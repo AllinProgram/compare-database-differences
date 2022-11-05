@@ -1,0 +1,36 @@
+:author: AllinProgram.com
+= compare-database-differences
+
+本项目可以帮助快速比较两个不同数据库的表字段差异，尤其适合同一项目不同环境之间的对比，帮助快速发现差异，避免不同环境部署代码时数据库结构的不兼容。
+
+
+== 功能
+
+- [x] 发现某环境特有的表
+- [x] 发现某环境特有的字段
+- [x] 发现同一字段数据类型不一致的情况
+- [ ] 发现同一字段数据限制不一致的情况
+- [ ] 发现同一张表索引设计差异
+
+
+== 使用
+
+[source, java]
+....
+public class Main {
+    public static void main(String[] args) {
+        new DBCompareStart(
+                new DBCompareStart.DBConfig(
+                        "A环境",
+                        "jdbc:mysql://hostA:portA/databaseA",
+                        "username",
+                        "password"),
+                new DBCompareStart.DBConfig(
+                        "B环境",
+                        "jdbc:mysql://hostB:portB/databaseB",
+                        "username",
+                        "password")
+        );
+    }
+}
+....
