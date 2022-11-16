@@ -39,10 +39,12 @@ class SQLHandler {
             if (dtTable.equals(ptTable)) {
                 dtFiled.forEach((dtFiledName, dtFiledType) -> ptFiled.forEach((ptFiledName, ptFiledType) -> {
                     if (!dtFiled.containsKey(ptFiledName)) {
-                        notExistFiled.add(dbFlagA + "表 " + dtTable + "不存在字段" + ptFiledName);
+//                        notExistFiled.add(dbFlagA + "表 " + dtTable + "不存在字段" + ptFiledName + ptFiledType);
+                        notExistFiled.add(formatMsg(dbFlagA, dtTable, ptFiledName, ptFiledType));
                     }
                     if (!ptFiled.containsKey(dtFiledName)) {
-                        notExistFiled.add(dbFlagB + "表 " + ptTable + "不存在字段" + dtFiledName);
+//                        notExistFiled.add(dbFlagB + "表 " + ptTable + "不存在字段" + dtFiledName + dtFiledType);
+                        notExistFiled.add(formatMsg(dbFlagB, ptTable, dtFiledName, dtFiledType));
                     }
                     // 同字段比较
                     if (dtFiledName.equals(ptFiledName) && !dtFiledType.equals(ptFiledType)) {
@@ -56,17 +58,14 @@ class SQLHandler {
         log.error("不存在的字段：{}", notExistFiled);
     }
 
-    /**
-     * 通过数据库链接获取DDL
-     */
-    public static List<String> parseDDLList(String url, String username, String password) throws SQLException, ClassNotFoundException {
-        return FileHandler.readContentBySeparator(getSql(url, username, password));
+    private static String formatMsg(String env, String table, String filedName, String filedDataType) {
+        return String.format("%-30s环境表：%-30s字段名：%-30s类型：%-30s", env, table, filedName, filedDataType);
     }
 
     /**
      * 从数据库获取所有的SQL
      */
-    private static String getSql(String url, String username, String password) throws SQLException, ClassNotFoundException {
+    static String getSql(String url, String username, String password) throws SQLException, ClassNotFoundException {
         Class.forName("com.mysql.jdbc.Driver");
         Connection conn = DriverManager.getConnection(url, username, password);
         Statement stmt = conn.createStatement();

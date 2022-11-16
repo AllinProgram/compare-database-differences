@@ -24,12 +24,14 @@ public class Main {
                         "A环境",
                         "jdbc:mysql://hostA:portA/databaseA",
                         "username",
-                        "password"),
+                        "password",
+                        null),
                 new DBCompareStart.DBConfig(
                         "B环境",
                         "jdbc:mysql://hostB:portB/databaseB",
                         "username",
-                        "password")
+                        "password",
+                        null)
         );
     }
 }
