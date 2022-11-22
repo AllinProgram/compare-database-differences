@@ -55,7 +55,7 @@ class SQLHandler {
                         /*2. 同字段比较差异*/
                         List<String> msgList = validateColumn(aColumn, bColumn);
                         if (msgList != null && msgList.size() != 0) {
-                            log.error(String.format("表名：%-20s字段名：%-20s%s：%-70s%s：%-70s区别：%s", aTable, aColumnName, envA, aColumn, envB, bColumn, msgList));
+                            log.error(String.format("表名：%-30s字段名：%-30s%s：%-80s%s：%-80s区别：%s", aTable, aColumnName, envA, aColumn, envB, bColumn, msgList));
                         }
                     });
                 });
