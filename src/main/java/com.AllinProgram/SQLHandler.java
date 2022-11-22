@@ -19,47 +19,79 @@ import java.util.stream.Collectors;
 @Slf4j
 class SQLHandler {
 
-    public static void vs(String dbFlagA, List<String> DDLAList, String dbFlagB, List<String> DDLBList) {
+    public static void vs(String envA, List<String> DDLAList, String envB, List<String> DDLBList) {
 
-        Map<String/*tableName*/, Map<String/*filedName*/, String/*filedType*/>> databaseA = parseReflect(DDLAList);
-        Map<String/*tableName*/, Map<String/*filedName*/, String/*filedType*/>> databaseB = parseReflect(DDLBList);
+        Map<String/*tableName*/, List<ColumnDefinition>> databaseA = parseReflect(DDLAList);
+        Map<String/*tableName*/, List<ColumnDefinition>> databaseB = parseReflect(DDLBList);
 
         // 开始比较差异
         Set<String> notExistTable = new HashSet<>();
-        Set<String> notExistFiled = new HashSet<>();
-        databaseA.forEach((dtTable, dtFiled) -> databaseB.forEach((ptTable, ptFiled) -> {
-            if (!databaseA.containsKey(ptTable)) {
-                notExistTable.add(dbFlagA + "不存在表" + ptTable);
+        Set<String> notExistColumn = new HashSet<>();
+        databaseA.forEach((aTable, aColumnList) -> databaseB.forEach((bTable, bColumnList) -> {
+            if (!databaseA.containsKey(bTable)) {
+                notExistTable.add(envA + "不存在表" + bTable);
             }
-            if (!databaseB.containsKey(dtTable)) {
-                notExistTable.add(dbFlagB + "不存在表" + dtTable);
+            if (!databaseB.containsKey(aTable)) {
+                notExistTable.add(envB + "不存在表" + aTable);
             }
 
             // 同表比较
-            if (dtTable.equals(ptTable)) {
-                dtFiled.forEach((dtFiledName, dtFiledType) -> ptFiled.forEach((ptFiledName, ptFiledType) -> {
-                    if (!dtFiled.containsKey(ptFiledName)) {
-//                        notExistFiled.add(dbFlagA + "表 " + dtTable + "不存在字段" + ptFiledName + ptFiledType);
-                        notExistFiled.add(formatMsg(dbFlagA, dtTable, ptFiledName, ptFiledType));
-                    }
-                    if (!ptFiled.containsKey(dtFiledName)) {
-//                        notExistFiled.add(dbFlagB + "表 " + ptTable + "不存在字段" + dtFiledName + dtFiledType);
-                        notExistFiled.add(formatMsg(dbFlagB, ptTable, dtFiledName, dtFiledType));
-                    }
-                    // 同字段比较
-                    if (dtFiledName.equals(ptFiledName) && !dtFiledType.equals(ptFiledType)) {
-                        // log.info("表名：{}, 字段名：{}，dt类型：{}， pt类型：{}", dtTable, ptFiledName, dtFiledType, ptFiledType);
-                        log.error(String.format("表名：%-30s字段名：%-30s%s类型：%-30s%s类型：%-30s", dtTable, ptFiledName, dbFlagA, dtFiledType, dbFlagB, ptFiledType));
-                    }
-                }));
+            if (aTable.equals(bTable)) {
+                aColumnList.forEach(aColumn -> {
+                    List<String> aTableColumnNameList = aColumnList.stream().map(ColumnDefinition::getColumnName).collect(Collectors.toList());
+                    List<String> bTableColumnNameList = bColumnList.stream().map(ColumnDefinition::getColumnName).collect(Collectors.toList());
+                    bColumnList.forEach(bColumn -> {
+                        String aColumnName = aColumn.getColumnName();
+                        String bColumnName = bColumn.getColumnName();
+
+                        /*1. 找到同名表中却不存在的字段*/
+                        if (!aTableColumnNameList.contains(aColumnName)) {
+                            notExistColumn.add(formatMsg(envA, aTable, bColumn));
+                        }
+                        if (!bTableColumnNameList.contains(bColumnName)) {
+                            notExistColumn.add(formatMsg(envB, bTable, aColumn));
+                        }
+
+                        /*2. 同字段比较差异*/
+                        List<String> msgList = validateColumn(aColumn, bColumn);
+                        if (msgList != null && msgList.size() != 0) {
+                            log.error(String.format("表名：%-20s字段名：%-20s%s：%-70s%s：%-70s区别：%s", aTable, aColumnName, envA, aColumn, envB, bColumn, msgList));
+                        }
+                    });
+                });
             }
         }));
         log.error("不存在的表：{}", notExistTable);
-        log.error("不存在的字段：{}", notExistFiled);
+        log.error("不存在的字段：{}", notExistColumn);
     }
 
-    private static String formatMsg(String env, String table, String filedName, String filedDataType) {
-        return String.format("%-30s环境表：%-30s字段名：%-30s类型：%-30s", env, table, filedName, filedDataType);
+    /**
+     * 比对同字段ColumnDefinition对象，并将具体差异返回
+     *
+     * @return 具体不同
+     */
+    private static List<String> validateColumn(ColumnDefinition columnA, ColumnDefinition columnB) {
+        String aColumnName = columnA.getColumnName();
+        String bColumnName = columnB.getColumnName();
+        if (!aColumnName.equals(bColumnName)) {
+            return null;
+        }
+
+        List<String> msgList = new ArrayList<>();
+        if (!columnA.getColDataType().toString().equals(columnB.getColDataType().toString())) {
+            msgList.add("字段类型不一致");
+        }
+
+        List<String> aColumnSpecs = columnA.getColumnSpecs();
+        List<String> bColumnSpecs = columnB.getColumnSpecs();
+        if (!new HashSet<>(aColumnSpecs).equals(new HashSet<>(bColumnSpecs))) {
+            msgList.add("字段规格不一致");
+        }
+        return msgList;
+    }
+
+    private static String formatMsg(String env, String table, ColumnDefinition column) {
+        return String.format("%-30s环境表：%-30s字段：%-50s", env, table, column);
     }
 
     /**
@@ -100,8 +132,8 @@ class SQLHandler {
         return createTables.toString();
     }
 
-    private static Map<String/*tableName*/, Map<String/*filedName*/, String/*filedType*/>> parseReflect(List<String> sqlList) {
-        Map<String/*tableName*/, Map<String/*filedName*/, String/*filedType*/>> rst = new HashMap<>();
+    private static Map<String/*tableName*/, List<ColumnDefinition>/*columns*/> parseReflect(List<String> sqlList) {
+        Map<String, List<ColumnDefinition>> rst = new HashMap<>();
         for (String sql : sqlList) {
             CreateTable createTable;
             try {
@@ -110,11 +142,7 @@ class SQLHandler {
                 log.error("无法解析的sql: {}", sql);
                 throw new RuntimeException(e);
             }
-            rst.put(createTable.getTable().getName(),
-                    createTable.getColumnDefinitions().stream()
-                            .collect(Collectors.toMap(
-                                    ColumnDefinition::getColumnName,
-                                    column -> column.getColDataType().toString())));
+            rst.put(createTable.getTable().getName(), createTable.getColumnDefinitions());
         }
         return rst;
     }
