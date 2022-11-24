@@ -45,24 +45,26 @@ class SQLHandler {
                         String bColumnName = bColumn.getColumnName();
 
                         /*1. 找到同名表中却不存在的字段*/
-                        if (!aTableColumnNameList.contains(aColumnName)) {
+                        if (!aTableColumnNameList.contains(bColumnName)) {
                             notExistColumn.add(formatMsg(envA, aTable, bColumn));
                         }
-                        if (!bTableColumnNameList.contains(bColumnName)) {
+                        if (!bTableColumnNameList.contains(aColumnName)) {
                             notExistColumn.add(formatMsg(envB, bTable, aColumn));
                         }
 
                         /*2. 同字段比较差异*/
                         List<String> msgList = validateColumn(aColumn, bColumn);
                         if (msgList != null && msgList.size() != 0) {
-                            log.error(String.format("表名：%-30s字段名：%-30s%s：%-80s%s：%-80s区别：%s", aTable, aColumnName, envA, aColumn, envB, bColumn, msgList));
+                            System.out.printf("表名：%-30s字段名：%-30s%s：%-80s%s：%-80s区别：%s%n", aTable, aColumnName, envA, aColumn, envB, bColumn, msgList);
                         }
                     });
                 });
             }
         }));
-        log.error("不存在的表：{}", notExistTable);
-        log.error("不存在的字段：{}", notExistColumn);
+        System.out.println();
+        System.out.printf("不存在的表：%s", notExistTable);
+        System.out.println("\n");
+        System.out.printf("不存在的字段：%s", notExistColumn);
     }
 
     /**
