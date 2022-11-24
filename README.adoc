@@ -1,19 +1,24 @@
 :author: AllinProgram.com
 = compare-database-differences
 
-本项目可以帮助快速比较两个不同数据库的表字段差异，尤其适合同一项目不同环境之间的对比，帮助快速发现差异，避免不同环境部署代码时数据库结构的不兼容。
+本项目可以帮助快速比较两个不同数据库的表字段差异，尤其适合同一项目不同环境之间的对比，帮助快速发现差异，避免不同环境部署代码时数据库结构的不兼容，目前已支持。
 
 
-== 功能
-
-- [x] 发现某环境特有的表
-- [x] 发现某环境特有的字段
-- [x] 发现同一字段数据类型不一致的情况
-- [x] 发现同一字段数据限制不一致的情况
-- [ ] 发现同一张表索引设计差异
-
+== 特性
+- [x] 支持MySQL（目前不支持MySQL8）
+- [x] 支持OceanBase以及分库分表场景
+- [x] 发现环境特有的表
+- [x] 发现表特有的字段
+- [x] 发现字段数据类型不一致的情况
+- [x] 发现字段数据限制不一致的情况
+- [ ] 发现表索引差异
+- [ ] 发现表规格差异
+- [ ] 支持GUI客户端使用
+- [ ] 支持IDEA插件使用
 
 == 使用
+
+=== 场景1：本地可以直连数据库
 
 [source, java]
 ....
@@ -26,6 +31,30 @@ public class Main {
                         "username",
                         "password",
                         null),
+                new DBCompareStart.DBConfig(
+                        "B环境",
+                        "jdbc:mysql://hostB:portB/databaseB",
+                        "username",
+                        "password",
+                        null)
+        );
+    }
+}
+....
+
+=== 场景2：本地无法直连数据库，或者仅有一个库可以直连
+
+[source, java]
+....
+public class Main {
+    public static void main(String[] args) {
+        new DBCompareStart(
+                new DBCompareStart.DBConfig(
+                        null,
+                        null,
+                        null,
+                        null,
+                        "src/main/resources/a-create-table.sql"),
                 new DBCompareStart.DBConfig(
                         "B环境",
                         "jdbc:mysql://hostB:portB/databaseB",
