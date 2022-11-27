@@ -1,4 +1,4 @@
-package com.AllinProgram;
+package com.AllinProgram.util;
 
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * @since 2022-10-28 11:13 星期五
  */
 @Slf4j
-class FileHandler {
+public class FileHandler {
 
     /**
      * 请不要纠结这里的“------------”，这是分隔符，在获取sql的时候我使用了这个作为多个SQL之间的分隔符。
