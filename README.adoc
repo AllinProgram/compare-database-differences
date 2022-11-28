@@ -31,14 +31,12 @@ public class Main {
                         "A环境",
                         "jdbc:mysql://hostA:portA/databaseA",
                         "username",
-                        "password",
-                        null),
+                        "password"),
                 new DBCompareStart.DBConfig(
                         "B环境",
                         "jdbc:mysql://hostB:portB/databaseB",
                         "username",
-                        "password",
-                        null)
+                        "password")
         );
     }
 }
@@ -52,17 +50,13 @@ public class Main {
     public static void main(String[] args) {
         new DBCompareStart(
                 new DBCompareStart.DBConfig(
-                        null,
-                        null,
-                        null,
-                        null,
+                        "A环境",
                         "src/main/resources/a-create-table.sql"),
                 new DBCompareStart.DBConfig(
                         "B环境",
                         "jdbc:mysql://hostB:portB/databaseB",
                         "username",
-                        "password",
-                        null)
+                        "password")
         );
     }
 }
