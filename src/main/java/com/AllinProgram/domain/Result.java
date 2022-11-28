@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,11 +17,11 @@ import java.util.List;
 @Setter
 public class Result {
 
-    private List<CreateTable> createTableSqlA;
+    private List<CreateTable> createTableSqlA = new ArrayList<>();
 
-    private List<CreateTable> createTableSqlB;
+    private List<CreateTable> createTableSqlB = new ArrayList<>();
 
-    private List<DiffColumn> diffColumnList;
+    private List<DiffColumn> diffColumnList = new ArrayList<>();
 
-    private List<DiffTable> diffTableList;
+    private List<DiffTable> diffTableList = new ArrayList<>();
 }

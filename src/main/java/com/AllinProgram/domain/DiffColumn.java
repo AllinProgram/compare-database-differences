@@ -1,5 +1,6 @@
 package com.AllinProgram.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -14,11 +15,12 @@ import java.util.List;
  */
 @Getter
 @Setter
+@AllArgsConstructor
 public class DiffColumn {
 
     private String columnName;
 
-    private List<DiffType> diffTypeList;
+    private List<DiffColumnType> diffColumnTypeList;
 
     private ColumnDefinition columnDefinitionA;
 
@@ -29,8 +31,9 @@ public class DiffColumn {
     /**
      * 字段差异类型
      */
-    public enum DiffType {
+    public enum DiffColumnType {
         DATA_TYPE,
-        SPECIFICITY
+        SPECIFICITY,
+        NOT_EXIST
     }
 }

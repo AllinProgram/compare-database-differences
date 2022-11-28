@@ -1,10 +1,13 @@
 package com.AllinProgram.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.util.List;
+
+import static com.AllinProgram.domain.DiffTable.DiffTableType.NOT_EXIST;
 
 /**
  * 同表（基于表名）的差异数据
@@ -14,11 +17,12 @@ import java.util.List;
  */
 @Getter
 @Setter
+@AllArgsConstructor
 public class DiffTable {
 
     private String tableName;
 
-    private List<DiffType> diffTypeList;
+    private List<DiffTableType> diffTableTypeList;
 
     private CreateTable createTableA;
 
@@ -26,11 +30,34 @@ public class DiffTable {
 
     private String helpfulMessage;
 
+    public static void buildDiffTable(DiffTableType diffTableType, Result result, String tableName) {
+        switch (diffTableType) {
+            case NOT_EXIST:
+                result.getDiffTableList().add(new DiffTable(
+                        tableName,
+                        List.of(NOT_EXIST),
+                        result.getCreateTableSqlA().stream()
+                                .filter(createTable -> tableName.equals(createTable.getTable().getName()))
+                                .findFirst().get(),
+                        result.getCreateTableSqlB().stream()
+                                .filter(createTable -> tableName.equals(createTable.getTable().getName()))
+                                .findFirst().get(),
+                        null
+                ));
+                break;
+            case INDEX:
+                break;
+            case OPTION:
+                break;
+        }
+    }
+
     /**
      * 表差异类型
      */
-    public enum DiffType {
+    public enum DiffTableType {
         INDEX,
-        TABLE_OPTION
+        OPTION,
+        NOT_EXIST
     }
 }

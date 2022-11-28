@@ -1,11 +1,15 @@
 package com.AllinProgram.component;
 
+import com.AllinProgram.domain.DiffColumn;
+import com.AllinProgram.domain.DiffTable;
 import com.AllinProgram.domain.Result;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.AllinProgram.domain.DiffTable.buildDiffTable;
 
 /**
  * 比对差异
@@ -14,7 +18,7 @@ import java.util.stream.Collectors;
  * @since 2022-11-28 19:56 星期一
  */
 public class DiffCompareComponent {
-    public void vs(String envA, String envB, Result result) {
+    public void vs(Result result) {
 
         Map<String/*tableName*/, List<ColumnDefinition>> databaseA = parseReflect(result.getCreateTableSqlA());
         Map<String/*tableName*/, List<ColumnDefinition>> databaseB = parseReflect(result.getCreateTableSqlB());
@@ -22,16 +26,16 @@ public class DiffCompareComponent {
         // 开始比较差异
         Set<String> notExistTable = new HashSet<>();
         Set<String> notExistColumn = new HashSet<>();
-        databaseA.forEach((aTable, aColumnList) -> databaseB.forEach((bTable, bColumnList) -> {
-            if (!databaseA.containsKey(bTable)) {
-                notExistTable.add(envA + "不存在表" + bTable);
+        databaseA.forEach((aTableName, aColumnList) -> databaseB.forEach((bTableName, bColumnList) -> {
+            if (!databaseA.containsKey(bTableName)) {
+                buildDiffTable(DiffTable.DiffTableType.NOT_EXIST, result, bTableName);
             }
-            if (!databaseB.containsKey(aTable)) {
-                notExistTable.add(envB + "不存在表" + aTable);
+            if (!databaseB.containsKey(aTableName)) {
+                buildDiffTable(DiffTable.DiffTableType.NOT_EXIST, result, aTableName);
             }
 
             // 同表比较
-            if (aTable.equals(bTable)) {
+            if (aTableName.equals(bTableName)) {
                 aColumnList.forEach(aColumn -> {
                     List<String> aTableColumnNameList = aColumnList.stream().map(ColumnDefinition::getColumnName).collect(Collectors.toList());
                     List<String> bTableColumnNameList = bColumnList.stream().map(ColumnDefinition::getColumnName).collect(Collectors.toList());
@@ -41,25 +45,30 @@ public class DiffCompareComponent {
 
                         /*1. 找到同名表中却不存在的字段*/
                         if (!aTableColumnNameList.contains(bColumnName)) {
-                            notExistColumn.add(formatMsg(envA, aTable, bColumn));
+                            result.getDiffColumnList().add(new DiffColumn(
+                                    bColumnName,
+                                    List.of(DiffColumn.DiffColumnType.NOT_EXIST),
+                                    aColumn, bColumn, null
+                            ));
                         }
                         if (!bTableColumnNameList.contains(aColumnName)) {
-                            notExistColumn.add(formatMsg(envB, bTable, aColumn));
+                            result.getDiffColumnList().add(new DiffColumn(
+                                    aColumnName,
+                                    List.of(DiffColumn.DiffColumnType.NOT_EXIST),
+                                    aColumn, bColumn, null
+                            ));
                         }
 
                         /*2. 同字段比较差异*/
-                        List<String> msgList = validateColumn(aColumn, bColumn);
-                        if (msgList != null && msgList.size() != 0) {
-                            System.out.printf("表名：%-30s字段名：%-30s%s：%-80s%s：%-80s区别：%s%n", aTable, aColumnName, envA, aColumn, envB, bColumn, msgList);
+                        List<DiffColumn.DiffColumnType> diffColumnTypeList = validateColumn(aColumn, bColumn);
+                        if (diffColumnTypeList != null && diffColumnTypeList.size() != 0) {
+                            result.getDiffColumnList().add(new DiffColumn(
+                                    aColumnName, diffColumnTypeList, aColumn, bColumn, null));
                         }
                     });
                 });
             }
         }));
-        System.out.println();
-        System.out.printf("不存在的表：%s", notExistTable);
-        System.out.println("\n");
-        System.out.printf("不存在的字段：%s", notExistColumn);
     }
 
     /**
@@ -67,24 +76,24 @@ public class DiffCompareComponent {
      *
      * @return 具体不同
      */
-    private List<String> validateColumn(ColumnDefinition columnA, ColumnDefinition columnB) {
+    private List<DiffColumn.DiffColumnType> validateColumn(ColumnDefinition columnA, ColumnDefinition columnB) {
         String aColumnName = columnA.getColumnName();
         String bColumnName = columnB.getColumnName();
         if (!aColumnName.equals(bColumnName)) {
             return null;
         }
 
-        List<String> msgList = new ArrayList<>();
+        List<DiffColumn.DiffColumnType> diffColumnTypeList = new ArrayList<>();
         if (!columnA.getColDataType().toString().equals(columnB.getColDataType().toString())) {
-            msgList.add("字段类型不一致");
+            diffColumnTypeList.add(DiffColumn.DiffColumnType.DATA_TYPE);
         }
 
         List<String> aColumnSpecs = columnA.getColumnSpecs();
         List<String> bColumnSpecs = columnB.getColumnSpecs();
         if (!new HashSet<>(aColumnSpecs).equals(new HashSet<>(bColumnSpecs))) {
-            msgList.add("字段规格不一致");
+            diffColumnTypeList.add(DiffColumn.DiffColumnType.SPECIFICITY);
         }
-        return msgList;
+        return diffColumnTypeList;
     }
 
     private String formatMsg(String env, String table, ColumnDefinition column) {

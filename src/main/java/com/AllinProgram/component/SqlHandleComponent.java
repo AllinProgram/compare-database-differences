@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SqlHandleComponent {
 
-    public List<CreateTable> parseDDLList(DBCompareStart.DBConfig dbConfig) {
+    public List<CreateTable> parseDDLData(DBCompareStart.DBConfig dbConfig) {
         return StringUtils.isBlank(dbConfig.getFilePath())
                 ? new DataBaseComponent().queryCreateTableList(dbConfig.getUrl(), dbConfig.getUsername(), dbConfig.getPassword())
                 : parseCreateTableFromFile(dbConfig.getFilePath());

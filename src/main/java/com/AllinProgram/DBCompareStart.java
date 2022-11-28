@@ -19,7 +19,7 @@ public class DBCompareStart {
     public DBCompareStart(DBConfig databaseA, DBConfig databaseB) {
         Result result = buildDataDomain(databaseA, databaseB);
         DiffCompareComponent diffCompareComponent = new DiffCompareComponent();
-        diffCompareComponent.vs(databaseA.envName, databaseB.envName, result);
+        diffCompareComponent.vs(result);
     }
 
     /**
@@ -28,8 +28,8 @@ public class DBCompareStart {
     private Result buildDataDomain(DBConfig databaseA, DBConfig databaseB) {
         Result result = new Result();
         SqlHandleComponent sqlHandleComponent = new SqlHandleComponent();
-        result.setCreateTableSqlA(sqlHandleComponent.parseDDLList(databaseA));
-        result.setCreateTableSqlB(sqlHandleComponent.parseDDLList(databaseB));
+        result.setCreateTableSqlA(sqlHandleComponent.parseDDLData(databaseA));
+        result.setCreateTableSqlB(sqlHandleComponent.parseDDLData(databaseB));
         return result;
     }
 
