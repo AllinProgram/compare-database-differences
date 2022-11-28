@@ -24,8 +24,6 @@ public class DiffCompareComponent {
         Map<String/*tableName*/, List<ColumnDefinition>> databaseB = parseReflect(result.getCreateTableSqlB());
 
         // 开始比较差异
-        Set<String> notExistTable = new HashSet<>();
-        Set<String> notExistColumn = new HashSet<>();
         databaseA.forEach((aTableName, aColumnList) -> databaseB.forEach((bTableName, bColumnList) -> {
             if (!databaseA.containsKey(bTableName)) {
                 buildDiffTable(DiffTable.DiffTableType.NOT_EXIST, result, bTableName);
