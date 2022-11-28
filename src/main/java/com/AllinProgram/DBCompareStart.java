@@ -1,14 +1,11 @@
 package com.AllinProgram;
 
+import com.AllinProgram.component.DiffCompareComponent;
+import com.AllinProgram.component.SqlHandleComponent;
 import com.AllinProgram.domain.Result;
 import com.AllinProgram.util.FileHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.sql.SQLException;
-
-import static com.AllinProgram.SQLHandler.parseDDLList;
-import static com.AllinProgram.SQLHandler.vs;
 
 /**
  * 快速比对不同环境之间的库表差异
@@ -19,9 +16,10 @@ import static com.AllinProgram.SQLHandler.vs;
 @Slf4j
 public class DBCompareStart {
 
-    public DBCompareStart(DBConfig databaseA, DBConfig databaseB) throws SQLException, ClassNotFoundException {
+    public DBCompareStart(DBConfig databaseA, DBConfig databaseB) {
         Result result = buildDataDomain(databaseA, databaseB);
-        vs(databaseA.envName, databaseB.envName, result);
+        DiffCompareComponent diffCompareComponent = new DiffCompareComponent();
+        diffCompareComponent.vs(databaseA.envName, databaseB.envName, result);
     }
 
     /**
@@ -29,8 +27,9 @@ public class DBCompareStart {
      */
     private Result buildDataDomain(DBConfig databaseA, DBConfig databaseB) {
         Result result = new Result();
-        result.setCreateTableSqlA(parseDDLList(databaseA));
-        result.setCreateTableSqlB(parseDDLList(databaseB));
+        SqlHandleComponent sqlHandleComponent = new SqlHandleComponent();
+        result.setCreateTableSqlA(sqlHandleComponent.parseDDLList(databaseA));
+        result.setCreateTableSqlB(sqlHandleComponent.parseDDLList(databaseB));
         return result;
     }
 
@@ -52,7 +51,7 @@ public class DBCompareStart {
         /**
          * 环境名称，不可为空
          */
-        private String envName;
+        private final String envName;
         /**
          * 连接串
          */

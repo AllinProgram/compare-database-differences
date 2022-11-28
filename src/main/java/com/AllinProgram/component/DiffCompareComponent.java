@@ -1,29 +1,20 @@
-package com.AllinProgram;
+package com.AllinProgram.component;
 
-import com.AllinProgram.component.DataBaseComponent;
 import com.AllinProgram.domain.Result;
-import com.AllinProgram.util.FileHandler;
-import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
-import org.apache.commons.lang3.StringUtils;
 
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * SQL处理器
+ * 比对差异
  *
  * @author AllinProgram
- * @since 2022-10-28 11:13 星期五
+ * @since 2022-11-28 19:56 星期一
  */
-@Slf4j
-class SQLHandler {
-
-    public static void vs(String envA, String envB, Result result) {
+public class DiffCompareComponent {
+    public void vs(String envA, String envB, Result result) {
 
         Map<String/*tableName*/, List<ColumnDefinition>> databaseA = parseReflect(result.getCreateTableSqlA());
         Map<String/*tableName*/, List<ColumnDefinition>> databaseB = parseReflect(result.getCreateTableSqlB());
@@ -76,7 +67,7 @@ class SQLHandler {
      *
      * @return 具体不同
      */
-    private static List<String> validateColumn(ColumnDefinition columnA, ColumnDefinition columnB) {
+    private List<String> validateColumn(ColumnDefinition columnA, ColumnDefinition columnB) {
         String aColumnName = columnA.getColumnName();
         String bColumnName = columnB.getColumnName();
         if (!aColumnName.equals(bColumnName)) {
@@ -96,30 +87,11 @@ class SQLHandler {
         return msgList;
     }
 
-    private static String formatMsg(String env, String table, ColumnDefinition column) {
+    private String formatMsg(String env, String table, ColumnDefinition column) {
         return String.format("%-30s环境表：%-30s字段：%-50s", env, table, column);
     }
 
-    static List<CreateTable> parseDDLList(DBCompareStart.DBConfig dbConfig) {
-        return StringUtils.isBlank(dbConfig.getFilePath())
-                ? DataBaseComponent.queryCreateTableList(dbConfig.getUrl(), dbConfig.getUsername(), dbConfig.getPassword())
-                : parseCreateTableFromFile(dbConfig.getFilePath());
-    }
-
-    private static List<CreateTable> parseCreateTableFromFile(String filePath) {
-        return FileHandler.readContentBySeparator(Path.of(filePath)).stream()
-                .map(sql -> {
-                    try {
-                        return (CreateTable) CCJSqlParserUtil.parse(sql);
-                    } catch (JSQLParserException e) {
-                        log.error("该SQL文本无法解析：{}", sql);
-                        throw new RuntimeException(e);
-                    }
-                }).collect(Collectors.toList());
-    }
-
-
-    private static Map<String/*tableName*/, List<ColumnDefinition>/*columnList*/> parseReflect(List<CreateTable> createTableList) {
+    private Map<String/*tableName*/, List<ColumnDefinition>/*columnList*/> parseReflect(List<CreateTable> createTableList) {
         return createTableList.stream()
                 .collect(
                         Collectors.toMap(

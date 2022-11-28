@@ -18,13 +18,13 @@ import java.util.List;
 @Slf4j
 public class DataBaseComponent {
 
-    public static List<CreateTable> queryCreateTableList(String url, String username, String password) {
+    public List<CreateTable> queryCreateTableList(String url, String username, String password) {
         Connection connection = connect(url, username, password);
         List<String> tableNameList = showTables(connection, url);
         return showCreateTableList(connection, tableNameList);
     }
 
-    private static List<String> showTables(Connection connection, String url) {
+    private List<String> showTables(Connection connection, String url) {
         List<String> tableNameList = new ArrayList<>();
         try {
             ResultSet showTables = connection.createStatement().executeQuery("show tables;");
@@ -41,7 +41,7 @@ public class DataBaseComponent {
         return tableNameList;
     }
 
-    private static List<CreateTable> showCreateTableList(Connection connection, List<String> tableNames) {
+    private List<CreateTable> showCreateTableList(Connection connection, List<String> tableNames) {
         List<CreateTable> createTableList = new ArrayList<>();
         for (String tableName : tableNames) {
             try {
@@ -70,7 +70,7 @@ public class DataBaseComponent {
         return createTableList;
     }
 
-    private static Connection connect(String url, String username, String password) {
+    private Connection connect(String url, String username, String password) {
         try {
             return DriverManager.getConnection(url, username, password);
         } catch (SQLException e) {
