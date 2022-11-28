@@ -1,16 +1,13 @@
 package com.AllinProgram;
 
+import com.AllinProgram.domain.Result;
 import com.AllinProgram.util.FileHandler;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
-import java.nio.file.Path;
 import java.sql.SQLException;
-import java.util.List;
 
-import static com.AllinProgram.SQLHandler.getSql;
+import static com.AllinProgram.SQLHandler.parseDDLList;
 import static com.AllinProgram.SQLHandler.vs;
 
 /**
@@ -23,31 +20,57 @@ import static com.AllinProgram.SQLHandler.vs;
 public class DBCompareStart {
 
     public DBCompareStart(DBConfig databaseA, DBConfig databaseB) throws SQLException, ClassNotFoundException {
-        vs(databaseA.dbFlag, parseDDLList(databaseA), databaseB.dbFlag, parseDDLList(databaseB));
+        Result result = buildDataDomain(databaseA, databaseB);
+        vs(databaseA.envName, databaseB.envName, result);
     }
 
     /**
-     * 通过数据库链接获取DDL
+     * 构建数据模型，为后续数据操作做准备
      */
-    private List<String> parseDDLList(DBConfig dbConfig) throws SQLException, ClassNotFoundException {
-        return StringUtils.isBlank(dbConfig.getDdlFile())
-                ? FileHandler.readContentBySeparator(getSql(dbConfig.getUrl(), dbConfig.getUsername(), dbConfig.getPassword()))
-                : FileHandler.readContentBySeparator(Path.of(dbConfig.getDdlFile()));
+    private Result buildDataDomain(DBConfig databaseA, DBConfig databaseB) {
+        Result result = new Result();
+        result.setCreateTableSqlA(parseDDLList(databaseA));
+        result.setCreateTableSqlB(parseDDLList(databaseB));
+        return result;
     }
 
     @Getter
-    @AllArgsConstructor
     public static class DBConfig {
+
+        public DBConfig(String envName, String url, String username, String password) {
+            this.envName = envName;
+            this.url = url;
+            this.username = username;
+            this.password = password;
+        }
+
+        public DBConfig(String envName, String filePath) {
+            this.envName = envName;
+            this.filePath = filePath;
+        }
+
         /**
-         * 标识用于区分数据库，必填
+         * 环境名称，不可为空
          */
-        private String dbFlag;
+        private String envName;
+        /**
+         * 连接串
+         */
         private String url;
+        /**
+         * 用户
+         */
         private String username;
+        /**
+         * 密码
+         */
         private String password;
         /**
-         * 对于本地无法连接的数据库，你可以将DDL语句放在一个文件中，并将地址放在这里，否则不要填写。
+         * 对于本地无法连接的数据库，你可以将建表语句保存为文件，并将文件地址传入，否则不要填写。
+         * 对于多个SQL请使用分隔符进行分隔内容。
+         * <p>
+         * {@link FileHandler#SQL_SEPARATOR}
          */
-        private String ddlFile;
+        private String filePath;
     }
 }

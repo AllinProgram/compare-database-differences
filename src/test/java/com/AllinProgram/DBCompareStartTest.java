@@ -15,8 +15,8 @@ class DBCompareStartTest {
     @Test
     public void vsTest() throws SQLException, ClassNotFoundException {
         new DBCompareStart(
-                new DBCompareStart.DBConfig("DT-Proposal", "jdbc:mysql://localhost:3306/t_ply_xxoo", "username", "password", null),
-                new DBCompareStart.DBConfig("PROD-Proposal", null, null, null, "src\\main\\resources\\ddl.sql")
+                new DBCompareStart.DBConfig("开发环境", "jdbc:mysql://localhost:3306/t_ply_xxoo", "username", "password"),
+                new DBCompareStart.DBConfig("测试环境", "src\\main\\resources\\ddl.sql")
         );
     }
 }
