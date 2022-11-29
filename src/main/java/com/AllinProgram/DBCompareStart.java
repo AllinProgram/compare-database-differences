@@ -1,6 +1,7 @@
 package com.AllinProgram;
 
 import com.AllinProgram.component.DiffCompareComponent;
+import com.AllinProgram.component.ResultHandleComponent;
 import com.AllinProgram.component.SqlHandleComponent;
 import com.AllinProgram.domain.Result;
 import com.AllinProgram.util.FileHandler;
@@ -20,6 +21,7 @@ public class DBCompareStart {
         Result result = buildDataDomain(databaseA, databaseB);
         DiffCompareComponent diffCompareComponent = new DiffCompareComponent();
         diffCompareComponent.vs(result);
+        new ResultHandleComponent().printDiffInfo(result);
     }
 
     /**
