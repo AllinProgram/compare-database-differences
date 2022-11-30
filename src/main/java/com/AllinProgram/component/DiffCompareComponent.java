@@ -6,7 +6,10 @@ import com.AllinProgram.domain.Result;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.AllinProgram.domain.DiffTable.buildDiffTable;
@@ -46,22 +49,22 @@ public class DiffCompareComponent {
                             result.getDiffColumnList().add(new DiffColumn(
                                     bColumnName,
                                     List.of(DiffColumn.DiffColumnType.NOT_EXIST),
-                                    aColumn, bColumn, null
+                                    null, bColumn, null
                             ));
                         }
                         if (!bTableColumnNameList.contains(aColumnName)) {
                             result.getDiffColumnList().add(new DiffColumn(
                                     aColumnName,
                                     List.of(DiffColumn.DiffColumnType.NOT_EXIST),
-                                    aColumn, bColumn, null
+                                    aColumn, null, null
                             ));
                         }
 
                         /*2. 同字段比较差异*/
                         List<DiffColumn.DiffColumnType> diffColumnTypeList = validateColumn(aColumn, bColumn);
                         if (diffColumnTypeList != null && diffColumnTypeList.size() != 0) {
-                            result.getDiffColumnList().add(new DiffColumn(
-                                    aColumnName, diffColumnTypeList, aColumn, bColumn, null));
+                            DiffColumn diffColumn = new DiffColumn(aColumnName, diffColumnTypeList, aColumn, bColumn, null);
+                            result.getDiffColumnList().add(diffColumn);
                         }
                     });
                 });
@@ -92,10 +95,6 @@ public class DiffCompareComponent {
             diffColumnTypeList.add(DiffColumn.DiffColumnType.SPECIFICITY);
         }
         return diffColumnTypeList;
-    }
-
-    private String formatMsg(String env, String table, ColumnDefinition column) {
-        return String.format("%-30s环境表：%-30s字段：%-50s", env, table, column);
     }
 
     private Map<String/*tableName*/, List<ColumnDefinition>/*columnList*/> parseReflect(List<CreateTable> createTableList) {

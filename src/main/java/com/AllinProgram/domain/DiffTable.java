@@ -1,8 +1,9 @@
 package com.AllinProgram.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import com.AllinProgram.domain.easyExcelConverter.CreateTableConverter;
+import com.AllinProgram.domain.easyExcelConverter.ListConverter;
+import com.alibaba.excel.annotation.ExcelProperty;
+import lombok.*;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.util.List;
@@ -17,17 +18,23 @@ import static com.AllinProgram.domain.DiffTable.DiffTableType.NOT_EXIST;
  */
 @Getter
 @Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 public class DiffTable {
 
+    @ExcelProperty("表名")
     private String tableName;
 
+    @ExcelProperty(value = "差异类型", converter = ListConverter.class)
     private List<DiffTableType> diffTableTypeList;
 
+    @ExcelProperty(value = "环境A", converter = CreateTableConverter.class)
     private CreateTable createTableA;
 
+    @ExcelProperty(value = "环境B", converter = CreateTableConverter.class)
     private CreateTable createTableB;
 
+    @ExcelProperty("建议")
     private String helpfulMessage;
 
     public static void buildDiffTable(DiffTableType diffTableType, Result result, String tableName) {
@@ -38,10 +45,10 @@ public class DiffTable {
                         List.of(NOT_EXIST),
                         result.getCreateTableSqlA().stream()
                                 .filter(createTable -> tableName.equals(createTable.getTable().getName()))
-                                .findFirst().get(),
+                                .findFirst().orElse(null),
                         result.getCreateTableSqlB().stream()
                                 .filter(createTable -> tableName.equals(createTable.getTable().getName()))
-                                .findFirst().get(),
+                                .findFirst().orElse(null),
                         null
                 ));
                 break;
@@ -58,6 +65,6 @@ public class DiffTable {
     public enum DiffTableType {
         INDEX,
         OPTION,
-        NOT_EXIST
+        NOT_EXIST,
     }
 }

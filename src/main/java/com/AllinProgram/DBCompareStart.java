@@ -19,9 +19,8 @@ public class DBCompareStart {
 
     public DBCompareStart(DBConfig databaseA, DBConfig databaseB) {
         Result result = buildDataDomain(databaseA, databaseB);
-        DiffCompareComponent diffCompareComponent = new DiffCompareComponent();
-        diffCompareComponent.vs(result);
-        new ResultHandleComponent().printDiffInfo(result);
+        new DiffCompareComponent().vs(result);
+        new ResultHandleComponent().buildDataToExcel(result);
     }
 
     /**
